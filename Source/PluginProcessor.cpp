@@ -23,11 +23,16 @@ RedRockSaturatorAudioProcessor::RedRockSaturatorAudioProcessor()
                        )
 #endif
 {
-    int numChannels = 2;
+    numChannels = 2;
+    filters.resize(numChannels);
     high_states_1.resize(numChannels);
     high_states_2.resize(numChannels);
     low_states_1.resize(numChannels);
     low_states_2.resize(numChannels);
+    outputSamples.resize(numChannels);
+    low_outputs.resize(numChannels);
+    high_outputs.resize(numChannels);
+    dist_lows.resize(numChannels);
 }
 
 RedRockSaturatorAudioProcessor::~RedRockSaturatorAudioProcessor()
@@ -102,8 +107,12 @@ void RedRockSaturatorAudioProcessor::prepareToPlay (double sampleRate, int sampl
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     fs = sampleRate;
-    lpfLRCoeffs(f_crossover, fs);
-    hpfLRCoeffs(f_crossover, fs);
+    
+    for (int i = 0; i < numChannels; i++)
+    {
+        filters[i].lpfLRCoeffs(f_crossover, fs);
+        filters[i].hpfLRCoeffs(f_crossover, fs);
+    }
 }
 
 void RedRockSaturatorAudioProcessor::releaseResources()
@@ -138,38 +147,6 @@ bool RedRockSaturatorAudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 }
 #endif
 
-
-void RedRockSaturatorAudioProcessor::hpfLRCoeffs(float f_crossover, float fs)
-{
-    double w0 = 2 * M_PI * f_crossover / fs;
-    double K = tan(w0 / 2);
-
-    double norm = 1 / (1 + K * sqrt(2) + K * K);
-
-    hpfCoeffs.a0 = norm * K * K;
-    hpfCoeffs.a1 = -2 * hpfCoeffs.a0;
-    hpfCoeffs.a2 = hpfCoeffs.a0;
-    hpfCoeffs.b1 = norm * 2 * (K * K - 1);
-    hpfCoeffs.b2 = norm * (1 - K * sqrt(2) + K * K);
-
-}
-
-void RedRockSaturatorAudioProcessor::lpfLRCoeffs(float f_crossover, float fs)
-{
-    float theta = M_PI * f_crossover / fs;
-    float Wc = M_PI * f_crossover;
-    float k = Wc / tan(theta);
-
-    float d = pow(k, 2.0) + pow(Wc, 2.0) + 2.0 * k * Wc;
-    lpfCoeffs.a0 = pow(Wc, 2.0) / d;
-    lpfCoeffs.a1 = 2.0 * pow(Wc, 2.0) / d;
-    lpfCoeffs.a2 = lpfCoeffs.a0;
-    lpfCoeffs.b1 = (-2.0 * pow(k, 2.0) + 2.0 * pow(Wc, 2.0)) / d;
-    lpfCoeffs.b2 = (-2.0 * k * Wc + pow(k, 2.0) + pow(Wc, 2.0)) / d;
-
-}
-
-
 float RedRockSaturatorAudioProcessor::tubeSaturation(float x, float mixAmount){
     
     float a = mixAmount;
@@ -197,35 +174,35 @@ float RedRockSaturatorAudioProcessor::tubeSaturation(float x, float mixAmount){
 
 
 
-float RedRockSaturatorAudioProcessor::lowpass_filter_L(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
-    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
-    *state2 = *state1;
-    *state1 = input - b1 * (*state1) - b2 * (*state2);
-    return output;
-}
-
-float RedRockSaturatorAudioProcessor::lowpass_filter_R(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
-    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
-    *state2 = *state1;
-    *state1 = input - b1 * (*state1) - b2 * (*state2);
-    return output;
-}
-
-float RedRockSaturatorAudioProcessor::highpass_filter_L(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
-    
-    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
-    *state2 = *state1;
-    *state1 = input - b1 * (*state1) - b2 * (*state2);
-    return output * (-1);
-}
-
-float RedRockSaturatorAudioProcessor::highpass_filter_R(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
-    
-    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
-    *state2 = *state1;
-    *state1 = input - b1 * (*state1) - b2 * (*state2);
-    return output * (-1);
-}
+//float RedRockSaturatorAudioProcessor::lowpass_filter_L(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
+//    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
+//    *state2 = *state1;
+//    *state1 = input - b1 * (*state1) - b2 * (*state2);
+//    return output;
+//}
+//
+//float RedRockSaturatorAudioProcessor::lowpass_filter_R(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
+//    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
+//    *state2 = *state1;
+//    *state1 = input - b1 * (*state1) - b2 * (*state2);
+//    return output;
+//}
+//
+//float RedRockSaturatorAudioProcessor::highpass_filter_L(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
+//    
+//    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
+//    *state2 = *state1;
+//    *state1 = input - b1 * (*state1) - b2 * (*state2);
+//    return output * (-1);
+//}
+//
+//float RedRockSaturatorAudioProcessor::highpass_filter_R(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
+//    
+//    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
+//    *state2 = *state1;
+//    *state1 = input - b1 * (*state1) - b2 * (*state2);
+//    return output * (-1);
+//}
 
 
 void RedRockSaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -245,36 +222,26 @@ void RedRockSaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     // interleaved by keeping the same state.
 
     int num_samples = buffer.getNumSamples();
-
-    float* channelDataL = buffer.getWritePointer(0);
-    float* channelDataR = buffer.getWritePointer(1);
-
-    auto readDataL = buffer.getReadPointer(0);
-    auto readDataR = buffer.getReadPointer(1);
-
     
-//    for(int channel = 0; channel < totalNumInputChannels; channel++)
-//    {
+    for(int channel = 0; channel < totalNumInputChannels; channel++)
+    {
+        float* channelData = buffer.getWritePointer(channel);
+
+        auto readData = buffer.getReadPointer(channel);
+        
         // Process audio samples
         for (int i = 0; i < num_samples; i++)
         {
             // Left channel
-            low_output_L = lowpass_filter_L(readDataL[i], low_state1_L, low_state2_L, lpfCoeffs.a0, lpfCoeffs.a1, lpfCoeffs.a2, lpfCoeffs.b1, lpfCoeffs.b2);
-            high_output_L = highpass_filter_L(readDataL[i], high_state1_L, high_state2_L, hpfCoeffs.a0, hpfCoeffs.a1, hpfCoeffs.a2, hpfCoeffs.b1, hpfCoeffs.b2);
+            low_outputs[channel] = filters[channel].lowpass_filter(readData[i], &low_states_1[channel], &low_states_2[channel], filters[channel].lpfCoeffs.a0, filters[channel].lpfCoeffs.a1, filters[channel].lpfCoeffs.a2, filters[channel].lpfCoeffs.b1, filters[channel].lpfCoeffs.b2);
+            high_outputs[channel] = filters[channel].highpass_filter(readData[i], &high_states_1[channel], &high_states_2[channel], filters[channel].hpfCoeffs.a0, filters[channel].hpfCoeffs.a1, filters[channel].hpfCoeffs.a2, filters[channel].hpfCoeffs.b1, filters[channel].hpfCoeffs.b2);
             
-            dist_low_L = tubeSaturation(low_output_L, 1.f); // Apply Saturation
-            outputSample_L = dist_low_L + high_output_L;    // Sum Signals
-            channelDataL[i] = outputSample_L;   // Copy to Buffer
+            dist_lows[channel] = tubeSaturation(low_outputs[channel], 1.f); // Apply Saturation
+            outputSamples[channel] = dist_lows[channel] + high_outputs[channel];  // Sum Signals
+            channelData[i] = outputSamples[channel];   // Copy to Buffer
             
-            // Right channel
-            low_output_R = lowpass_filter_R(readDataR[i], low_state1_R, low_state2_R, lpfCoeffs.a0, lpfCoeffs.a1, lpfCoeffs.a2, lpfCoeffs.b1, lpfCoeffs.b2);
-            high_output_R = highpass_filter_R(readDataR[i], high_state1_R, high_state2_R, hpfCoeffs.a0, hpfCoeffs.a1, hpfCoeffs.a2, hpfCoeffs.b1, hpfCoeffs.b2);
-            
-            dist_low_R = tubeSaturation(low_output_R, 1.f); // Apply Saturation
-            outputSample_R = dist_low_R + high_output_R;    // Sum Signals
-            channelDataR[i] = outputSample_R;   // Copy to Buffer
         }
-//    }
+    }
 }
 
 //==============================================================================

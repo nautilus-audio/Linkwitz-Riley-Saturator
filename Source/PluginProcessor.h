@@ -16,6 +16,62 @@
 
 using namespace juce;
 
+class Filter{
+    
+public:
+    
+    void hpfLRCoeffs(float f_crossover, float fs)
+    {
+        double w0 = 2 * M_PI * f_crossover / fs;
+        double K = tan(w0 / 2);
+        double norm = 1 / (1 + K * sqrt(2) + K * K);
+
+        hpfCoeffs.a0 = norm * K * K;
+        hpfCoeffs.a1 = -2 * hpfCoeffs.a0;
+        hpfCoeffs.a2 = hpfCoeffs.a0;
+        hpfCoeffs.b1 = norm * 2 * (K * K - 1);
+        hpfCoeffs.b2 = norm * (1 - K * sqrt(2) + K * K);
+
+    }
+
+    void lpfLRCoeffs(float f_crossover, float fs)
+    {
+        float theta = M_PI * f_crossover / fs;
+        float Wc = M_PI * f_crossover;
+        float k = Wc / tan(theta);
+        float d = pow(k, 2.0) + pow(Wc, 2.0) + 2.0 * k * Wc;
+        
+        lpfCoeffs.a0 = pow(Wc, 2.0) / d;
+        lpfCoeffs.a1 = 2.0 * pow(Wc, 2.0) / d;
+        lpfCoeffs.a2 = lpfCoeffs.a0;
+        lpfCoeffs.b1 = (-2.0 * pow(k, 2.0) + 2.0 * pow(Wc, 2.0)) / d;
+        lpfCoeffs.b2 = (-2.0 * k * Wc + pow(k, 2.0) + pow(Wc, 2.0)) / d;
+
+    }
+
+    float lowpass_filter(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
+        float output = a0 * input + a1 * (*state1) + a2 * (*state2);
+        *state2 = *state1;
+        *state1 = input - b1 * (*state1) - b2 * (*state2);
+        return output;
+    }
+
+    float highpass_filter(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
+        
+        float output = a0 * input + a1 * (*state1) + a2 * (*state2);
+        *state2 = *state1;
+        *state1 = input - b1 * (*state1) - b2 * (*state2);
+        return output * (-1);
+    }
+    
+    typedef struct {
+        float a0, a1, a2, b1, b2;
+    } LRCoefficients;
+    
+    LRCoefficients hpfCoeffs;
+    LRCoefficients lpfCoeffs;
+};
+
 class RedRockSaturatorAudioProcessor  : public juce::AudioProcessor
                             #if JucePlugin_Enable_ARA
                              , public juce::AudioProcessorARAExtension
@@ -63,45 +119,26 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RedRockSaturatorAudioProcessor)
     
-    typedef struct {
-        float a0, a1, a2, b1, b2;
-    } LRCoefficients;
-    
-    LRCoefficients hpfCoeffs;
-    LRCoefficients lpfCoeffs;
+
+    std::vector<Filter> filters;
+
     float fs;
-    
-    void hpfLRCoeffs(float f_crossover, float fs);
-    void lpfLRCoeffs(float f_crossover, float fs);
     float tubeSaturation(float x, float mixAmount);
-    float lowpass_filter_L(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2);
-    float lowpass_filter_R(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2);
-    float highpass_filter_L(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2);
-    float highpass_filter_R(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2);
     
     // Initialize filter states
     float initValue = 0.f;
-    float* low_state1_L = &initValue;
-    float* low_state2_L = &initValue;
-    float* low_state1_R = &initValue;
-    float* low_state2_R = &initValue;
-    float* high_state1_L = &initValue;
-    float* high_state2_L = &initValue;
-    float* high_state1_R = &initValue;
-    float* high_state2_R = &initValue;
     
     std::vector<float> high_states_1;
     std::vector<float> high_states_2;
     std::vector<float> low_states_1;
     std::vector<float> low_states_2;
-
-    
-    float outputSample_L, outputSample_R = 0.f;
-    float low_output_L, low_output_R = 0,f;
-    float high_output_L, high_output_R = 0.f;
-    float dist_low_R, dist_low_L = 0.f;
+    std::vector<float> outputSamples;
+    std::vector<float> low_outputs;
+    std::vector<float> high_outputs;
+    std::vector<float> dist_lows;
     
     float f_crossover = 1000.0; // Crossover frequency
+    int numChannels;
 
     
 };

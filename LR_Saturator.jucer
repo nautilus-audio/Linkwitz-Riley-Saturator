@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="OMfZmB" name="RedRockSaturatorTest" projectType="audioplug"
-              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
-  <MAINGROUP id="qW2S3m" name="RedRockSaturatorTest">
+<JUCERPROJECT id="OMfZmB" name="LR_Saturator" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
+  <MAINGROUP id="qW2S3m" name="LR_Saturator">
     <GROUP id="{48162E1A-674B-E9E3-B86F-76BAED71FA27}" name="Source">
       <FILE id="aY2Jnb" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
