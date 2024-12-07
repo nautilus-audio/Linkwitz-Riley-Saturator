@@ -173,38 +173,6 @@ float RedRockSaturatorAudioProcessor::tubeSaturation(float x, float mixAmount){
 }
 
 
-
-//float RedRockSaturatorAudioProcessor::lowpass_filter_L(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
-//    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
-//    *state2 = *state1;
-//    *state1 = input - b1 * (*state1) - b2 * (*state2);
-//    return output;
-//}
-//
-//float RedRockSaturatorAudioProcessor::lowpass_filter_R(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
-//    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
-//    *state2 = *state1;
-//    *state1 = input - b1 * (*state1) - b2 * (*state2);
-//    return output;
-//}
-//
-//float RedRockSaturatorAudioProcessor::highpass_filter_L(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
-//    
-//    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
-//    *state2 = *state1;
-//    *state1 = input - b1 * (*state1) - b2 * (*state2);
-//    return output * (-1);
-//}
-//
-//float RedRockSaturatorAudioProcessor::highpass_filter_R(float input, float *state1, float *state2, float a0, float a1, float a2, float b1, float b2) {
-//    
-//    float output = a0 * input + a1 * (*state1) + a2 * (*state2);
-//    *state2 = *state1;
-//    *state1 = input - b1 * (*state1) - b2 * (*state2);
-//    return output * (-1);
-//}
-
-
 void RedRockSaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -232,7 +200,6 @@ void RedRockSaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
         // Process audio samples
         for (int i = 0; i < num_samples; i++)
         {
-            // Left channel
             low_outputs[channel] = filters[channel].lowpass_filter(readData[i], &low_states_1[channel], &low_states_2[channel], filters[channel].lpfCoeffs.a0, filters[channel].lpfCoeffs.a1, filters[channel].lpfCoeffs.a2, filters[channel].lpfCoeffs.b1, filters[channel].lpfCoeffs.b2);
             high_outputs[channel] = filters[channel].highpass_filter(readData[i], &high_states_1[channel], &high_states_2[channel], filters[channel].hpfCoeffs.a0, filters[channel].hpfCoeffs.a1, filters[channel].hpfCoeffs.a2, filters[channel].hpfCoeffs.b1, filters[channel].hpfCoeffs.b2);
             

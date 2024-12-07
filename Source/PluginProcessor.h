@@ -137,7 +137,7 @@ private:
     std::vector<float> high_outputs;
     std::vector<float> dist_lows;
     
-    float f_crossover = 1000.0; // Crossover frequency
+    float f_crossover = 2000.0; // Crossover frequency
     int numChannels;
 
     
