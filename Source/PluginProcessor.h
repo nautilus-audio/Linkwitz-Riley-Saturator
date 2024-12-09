@@ -33,7 +33,7 @@ public:
         
         hpfCoeffs.a0 = pow(Wc, 2.0) / d;
         hpfCoeffs.a1 = -2.0 * pow(Wc, 2.0) / d;
-        hpfCoeffs.a2 = lpfCoeffs.a0;
+        hpfCoeffs.a2 = hpfCoeffs.a0;
         hpfCoeffs.b1 = (-2.0 * pow(k, 2.0) + 2.0 * pow(Wc, 2.0)) / d;
         hpfCoeffs.b2 = (-2.0 * k * Wc + pow(k, 2.0) + pow(Wc, 2.0)) / d;
 
