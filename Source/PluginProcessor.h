@@ -16,6 +16,10 @@
 
 using namespace juce;
 
+typedef float TAudioSampleType;
+typedef TAudioSampleType TFloatParamType;
+typedef int TIntegerParamType;
+
 class Filter{
     
 public:
@@ -125,6 +129,7 @@ private:
 
     float fs;
     float tubeSaturation(float x, float mixAmount);
+    float ProcessSample(TFloatParamType* outputs, TFloatParamType* readData, Filter channelFilter, TIntegerParamType channel, TIntegerParamType index);
     
     // Initialize filter states
     float initValue = 0.f;
@@ -134,8 +139,8 @@ private:
     std::vector<float> low_states_1;
     std::vector<float> low_states_2;
     std::vector<float> outputSamples;
-    std::vector<float> low_outputs;
-    std::vector<float> high_outputs;
+    std::vector<TFloatParamType> low_outputs;
+    std::vector<TFloatParamType> high_outputs;
     std::vector<float> dist_lows;
     
     float f_crossover = 2000.0; // Crossover frequency

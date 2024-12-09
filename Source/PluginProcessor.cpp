@@ -172,6 +172,14 @@ float RedRockSaturatorAudioProcessor::tubeSaturation(float x, float mixAmount){
     return y;
 }
 
+float RedRockSaturatorAudioProcessor::ProcessSample(TFloatParamType* outputs, TFloatParamType* readData, Filter channelFilter, TIntegerParamType channel, TIntegerParamType index)
+{
+    outputs[channel] = channelFilter.lowpass_filter(readData[index], &low_states_1[channel], &low_states_2[channel], channelFilter.lpfCoeffs.a0, channelFilter.lpfCoeffs.a1, channelFilter.lpfCoeffs.a2, channelFilter.lpfCoeffs.b1, channelFilter.lpfCoeffs.b2);
+    
+    return outputs[channel];
+}
+    
+
 
 void RedRockSaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
@@ -193,19 +201,25 @@ void RedRockSaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     
     for(int channel = 0; channel < totalNumInputChannels; channel++)
     {
-        float* channelData = buffer.getWritePointer(channel);
-
-        auto readData = buffer.getReadPointer(channel);
+        float* writeData = buffer.getWritePointer(channel);
+        float* readData = const_cast<float *>(buffer.getReadPointer(channel));
+        auto monoFilter = filters[channel];
         
         // Process audio samples
         for (int i = 0; i < num_samples; i++)
         {
+//                lowBand[channel][i] = ProcessSample(low_outputs, readData, monoFilter, channel, i);
+//
+//                highBand[channel][i] = ProcessSample(high_outputs, readData, monoFilter, channel, i);
+            
             low_outputs[channel] = filters[channel].lowpass_filter(readData[i], &low_states_1[channel], &low_states_2[channel], filters[channel].lpfCoeffs.a0, filters[channel].lpfCoeffs.a1, filters[channel].lpfCoeffs.a2, filters[channel].lpfCoeffs.b1, filters[channel].lpfCoeffs.b2);
             high_outputs[channel] = filters[channel].highpass_filter(readData[i], &high_states_1[channel], &high_states_2[channel], filters[channel].hpfCoeffs.a0, filters[channel].hpfCoeffs.a1, filters[channel].hpfCoeffs.a2, filters[channel].hpfCoeffs.b1, filters[channel].hpfCoeffs.b2);
             
             dist_lows[channel] = tubeSaturation(low_outputs[channel], 1.f); // Apply Saturation
+            
             outputSamples[channel] = dist_lows[channel] + high_outputs[channel];  // Sum Signals
-            channelData[i] = outputSamples[channel];   // Copy to Buffer
+            
+            readData[i] = outputSamples[channel];   // Copy to Buffer
             
         }
     }
