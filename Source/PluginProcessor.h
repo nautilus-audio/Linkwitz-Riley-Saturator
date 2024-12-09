@@ -22,15 +22,16 @@ public:
     
     void hpfLRCoeffs(float f_crossover, float fs)
     {
-        double w0 = 2 * M_PI * f_crossover / fs;
-        double K = tan(w0 / 2);
-        double norm = 1 / (1 + K * sqrt(2) + K * K);
-
-        hpfCoeffs.a0 = norm * K * K;
-        hpfCoeffs.a1 = -2 * hpfCoeffs.a0;
-        hpfCoeffs.a2 = hpfCoeffs.a0;
-        hpfCoeffs.b1 = norm * 2 * (K * K - 1);
-        hpfCoeffs.b2 = norm * (1 - K * sqrt(2) + K * K);
+        float theta = M_PI * f_crossover / fs;
+        float Wc = M_PI * f_crossover;
+        float k = Wc / tan(theta);
+        float d = pow(k, 2.0) + pow(Wc, 2.0) + 2.0 * k * Wc;
+        
+        hpfCoeffs.a0 = pow(Wc, 2.0) / d;
+        hpfCoeffs.a1 = -2.0 * pow(Wc, 2.0) / d;
+        hpfCoeffs.a2 = lpfCoeffs.a0;
+        hpfCoeffs.b1 = (-2.0 * pow(k, 2.0) + 2.0 * pow(Wc, 2.0)) / d;
+        hpfCoeffs.b2 = (-2.0 * k * Wc + pow(k, 2.0) + pow(Wc, 2.0)) / d;
 
     }
 
