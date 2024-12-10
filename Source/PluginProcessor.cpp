@@ -217,8 +217,15 @@ void RedRockSaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
             
             dist_lows[channel] = tubeSaturation(low_outputs[channel], 1.f); // Apply Saturation
             
+//            outputSamples[channel] = dist_lows[channel] + high_outputs[channel];  // Sum Signals
             outputSamples[channel] = dist_lows[channel] + high_outputs[channel];  // Sum Signals
             
+//            dist_lows[channel] = tubeSaturation(lowBand[channel][i], 1.f); // Apply Saturation
+//
+//            outputSamples[channel] = dist_lows[channel] + highBand[channel][i];  // Sum Signals
+//
+//            
+//
             writeData[i] = outputSamples[channel];   // Copy to Buffer
             
         }
