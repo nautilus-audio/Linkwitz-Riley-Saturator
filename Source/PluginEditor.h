@@ -14,11 +14,11 @@
 //==============================================================================
 /**
 */
-class RedRockSaturatorTestAudioProcessorEditor  : public juce::AudioProcessorEditor
+class RRS_Header_integrationAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    RedRockSaturatorTestAudioProcessorEditor (RedRockSaturatorAudioProcessor&);
-    ~RedRockSaturatorTestAudioProcessorEditor() override;
+    RRS_Header_integrationAudioProcessorEditor (RRS_Header_integrationAudioProcessor&);
+    ~RRS_Header_integrationAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -27,7 +27,7 @@ public:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    RedRockSaturatorAudioProcessor& audioProcessor;
+    RRS_Header_integrationAudioProcessor& audioProcessor;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RedRockSaturatorTestAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RRS_Header_integrationAudioProcessorEditor)
 };

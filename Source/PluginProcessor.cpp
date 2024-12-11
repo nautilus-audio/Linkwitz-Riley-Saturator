@@ -8,10 +8,9 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include <math.h>
 
 //==============================================================================
-RedRockSaturatorAudioProcessor::RedRockSaturatorAudioProcessor()
+RRS_Header_integrationAudioProcessor::RRS_Header_integrationAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -23,29 +22,19 @@ RedRockSaturatorAudioProcessor::RedRockSaturatorAudioProcessor()
                        )
 #endif
 {
-    numChannels = 2;
-    filters.resize(numChannels);
-    high_states_1.resize(numChannels);
-    high_states_2.resize(numChannels);
-    low_states_1.resize(numChannels);
-    low_states_2.resize(numChannels);
-    outputSamples.resize(numChannels);
-    low_outputs.resize(numChannels);
-    high_outputs.resize(numChannels);
-    dist_lows.resize(numChannels);
 }
 
-RedRockSaturatorAudioProcessor::~RedRockSaturatorAudioProcessor()
+RRS_Header_integrationAudioProcessor::~RRS_Header_integrationAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String RedRockSaturatorAudioProcessor::getName() const
+const juce::String RRS_Header_integrationAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool RedRockSaturatorAudioProcessor::acceptsMidi() const
+bool RRS_Header_integrationAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -54,7 +43,7 @@ bool RedRockSaturatorAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool RedRockSaturatorAudioProcessor::producesMidi() const
+bool RRS_Header_integrationAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -63,7 +52,7 @@ bool RedRockSaturatorAudioProcessor::producesMidi() const
    #endif
 }
 
-bool RedRockSaturatorAudioProcessor::isMidiEffect() const
+bool RRS_Header_integrationAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -72,57 +61,57 @@ bool RedRockSaturatorAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double RedRockSaturatorAudioProcessor::getTailLengthSeconds() const
+double RRS_Header_integrationAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int RedRockSaturatorAudioProcessor::getNumPrograms()
+int RRS_Header_integrationAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int RedRockSaturatorAudioProcessor::getCurrentProgram()
+int RRS_Header_integrationAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void RedRockSaturatorAudioProcessor::setCurrentProgram (int index)
+void RRS_Header_integrationAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String RedRockSaturatorAudioProcessor::getProgramName (int index)
+const juce::String RRS_Header_integrationAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void RedRockSaturatorAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void RRS_Header_integrationAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void RedRockSaturatorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void RRS_Header_integrationAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    fs = sampleRate;
-    
-    for (int i = 0; i < numChannels; i++)
-    {
-        filters[i].lpfLRCoeffs(f_crossover, fs);
-        filters[i].hpfLRCoeffs(f_crossover, fs);
-    }
+    saturator.Init();
+    saturator.SetMaxChannels(2);
+    saturator.SetMaxBlockSize(samplesPerBlock);
+    saturator.SetCrossoverFrequency(5000.f);
+    saturator.SetSampleRate(sampleRate);
+    saturator.SetGain(1.2f);
 }
 
-void RedRockSaturatorAudioProcessor::releaseResources()
+void RRS_Header_integrationAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    saturator.Release();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool RedRockSaturatorAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool RRS_Header_integrationAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -147,46 +136,19 @@ bool RedRockSaturatorAudioProcessor::isBusesLayoutSupported (const BusesLayout& 
 }
 #endif
 
-float RedRockSaturatorAudioProcessor::tubeSaturation(float x, float mixAmount){
-    
-    float a = mixAmount;
-    float y = 0.f;
-
-    // Soft clipping based on quadratic function
-    float threshold1 = 1.0f/3.0f;
-    float threshold2 = 2.0f/3.0f;
-    
-    if(a == 0.0f)
-        y = x;
-    else if(x > threshold2)
-        y = 1.0f;
-    else if(x > threshold1)
-        y = (3.0f - ((2.0f - 3.0f*x)) *  ((2.0f - 3.0f*x)))/3.0f;
-    else if(x < -threshold2)
-        y = -1.0f;
-    else if(x < -threshold1)
-        y = -(3.0f - ((2.0f + 3.0f*x)) * ((2.0f + 3.0f*x)))/3.0f;
-    else
-        y = (2.0f* x);
-    
-    return y;
-}
-
-float RedRockSaturatorAudioProcessor::ProcessSample(TFloatParamType* outputs, TFloatParamType* readData, Filter channelFilter, TIntegerParamType channel, TIntegerParamType index)
-{
-    outputs[channel] = channelFilter.lowpass_filter(readData[index], &low_states_1[channel], &low_states_2[channel], channelFilter.lpfCoeffs.a0, channelFilter.lpfCoeffs.a1, channelFilter.lpfCoeffs.a2, channelFilter.lpfCoeffs.b1, channelFilter.lpfCoeffs.b2);
-    
-    return outputs[channel];
-}
-    
-
-
-void RedRockSaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void RRS_Header_integrationAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-   
+    auto numSamples = buffer.getNumSamples();
+
+    // In case we have more outputs than inputs, this code clears any output
+    // channels that didn't contain input data, (because these aren't
+    // guaranteed to be empty - they may contain garbage).
+    // This is here to avoid people getting screaming feedback
+    // when they first compile a plugin, but obviously you don't need to keep
+    // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
@@ -196,62 +158,39 @@ void RedRockSaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buf
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-
-    int num_samples = buffer.getNumSamples();
     
-    for(int channel = 0; channel < totalNumInputChannels; channel++)
-    {
-        float* writeData = buffer.getWritePointer(channel);
-        float* readData = const_cast<float *>(buffer.getReadPointer(channel));
-        auto monoFilter = filters[channel];
-        
-        // Process audio samples
-        for (int i = 0; i < num_samples; i++)
-        {
-//                lowBand[channel][i] = ProcessSample(low_outputs, readData, monoFilter, channel, i);
+    auto writeData = const_cast<TFloatParamType **>(buffer.getArrayOfWritePointers());
+    saturator.Process(writeData, totalNumInputChannels, numSamples);
+    
+//    auto writeData = const_cast<TAudioSampleType **>(buffer.getArrayOfWritePointers());
+//    auto readData = const_cast<TAudioSampleType **>(buffer.getArrayOfReadPointers());
 //
-//                highBand[channel][i] = ProcessSample(high_outputs, readData, monoFilter, channel, i);
-            
-            low_outputs[channel] = filters[channel].lowpass_filter(readData[i], &low_states_1[channel], &low_states_2[channel], filters[channel].lpfCoeffs.a0, filters[channel].lpfCoeffs.a1, filters[channel].lpfCoeffs.a2, filters[channel].lpfCoeffs.b1, filters[channel].lpfCoeffs.b2);
-            high_outputs[channel] = filters[channel].highpass_filter(readData[i], &high_states_1[channel], &high_states_2[channel], filters[channel].hpfCoeffs.a0, filters[channel].hpfCoeffs.a1, filters[channel].hpfCoeffs.a2, filters[channel].hpfCoeffs.b1, filters[channel].hpfCoeffs.b2);
-            
-            dist_lows[channel] = tubeSaturation(low_outputs[channel], 1.f); // Apply Saturation
-            
-//            outputSamples[channel] = dist_lows[channel] + high_outputs[channel];  // Sum Signals
-            outputSamples[channel] = dist_lows[channel] + high_outputs[channel];  // Sum Signals
-            
-//            dist_lows[channel] = tubeSaturation(lowBand[channel][i], 1.f); // Apply Saturation
-//
-//            outputSamples[channel] = dist_lows[channel] + highBand[channel][i];  // Sum Signals
-//
-//            
-//
-            writeData[i] = outputSamples[channel];   // Copy to Buffer
-            
-        }
-    }
+//    memcpy(writeData, readData, numSamples);
+//    
+//    saturator.Process(writeData, totalNumInputChannels, numSamples);
+
 }
 
 //==============================================================================
-bool RedRockSaturatorAudioProcessor::hasEditor() const
+bool RRS_Header_integrationAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* RedRockSaturatorAudioProcessor::createEditor()
+juce::AudioProcessorEditor* RRS_Header_integrationAudioProcessor::createEditor()
 {
-    return new RedRockSaturatorTestAudioProcessorEditor (*this);
+    return new RRS_Header_integrationAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void RedRockSaturatorAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void RRS_Header_integrationAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void RedRockSaturatorAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void RRS_Header_integrationAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -261,5 +200,5 @@ void RedRockSaturatorAudioProcessor::setStateInformation (const void* data, int 
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new RedRockSaturatorAudioProcessor();
+    return new RRS_Header_integrationAudioProcessor();
 }

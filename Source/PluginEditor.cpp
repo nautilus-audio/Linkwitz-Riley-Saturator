@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-RedRockSaturatorTestAudioProcessorEditor::RedRockSaturatorTestAudioProcessorEditor (RedRockSaturatorAudioProcessor& p)
+RRS_Header_integrationAudioProcessorEditor::RRS_Header_integrationAudioProcessorEditor (RRS_Header_integrationAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     // Make sure that before the constructor has finished, you've set the
@@ -18,12 +18,12 @@ RedRockSaturatorTestAudioProcessorEditor::RedRockSaturatorTestAudioProcessorEdit
     setSize (400, 300);
 }
 
-RedRockSaturatorTestAudioProcessorEditor::~RedRockSaturatorTestAudioProcessorEditor()
+RRS_Header_integrationAudioProcessorEditor::~RRS_Header_integrationAudioProcessorEditor()
 {
 }
 
 //==============================================================================
-void RedRockSaturatorTestAudioProcessorEditor::paint (juce::Graphics& g)
+void RRS_Header_integrationAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
@@ -33,7 +33,7 @@ void RedRockSaturatorTestAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
-void RedRockSaturatorTestAudioProcessorEditor::resized()
+void RRS_Header_integrationAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
