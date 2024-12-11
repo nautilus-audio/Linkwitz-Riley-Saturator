@@ -206,11 +206,10 @@ struct DSP
             // Process audio samples
             for (TIntegerParamType i = 0; i < a_nSampleCount; ++i)
             {
-                low_outputs[channel]  = ProcessSampleLow(readData, monoFilter, channel, i);
-
-                high_outputs[channel]  = ProcessSampleHigh(readData, monoFilter, channel, i);
+                low_outputs[channel] = monoFilter.lowpass_filter(readData[i], &low_states_1[channel], &low_states_2[channel], monoFilter.lpfCoeffs.a0, monoFilter.lpfCoeffs.a1, monoFilter.lpfCoeffs.a2, monoFilter.lpfCoeffs.b1, monoFilter.lpfCoeffs.b2);
+                high_outputs[channel]  =  monoFilter.highpass_filter(readData[i], &high_states_1[channel], &high_states_2[channel], monoFilter.hpfCoeffs.a0, monoFilter.hpfCoeffs.a1, monoFilter.hpfCoeffs.a2, monoFilter.hpfCoeffs.b1, monoFilter.hpfCoeffs.b2);
                 
-                dist_lows[channel] = tubeSaturation(low_outputs[channel], 1.f); // Apply Saturationz
+                dist_lows[channel] = tubeSaturation(low_outputs[channel], 1.f); // Apply Saturation
                 outputSamples[channel] = dist_lows[channel] + high_outputs[channel];  // Sum Signals
                 
                 writeData[i] = outputSamples[channel];   // Copy to Buffer
