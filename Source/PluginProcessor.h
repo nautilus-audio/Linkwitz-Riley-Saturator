@@ -14,12 +14,12 @@
 //==============================================================================
 /**
 */
-class RRS_Header_integrationAudioProcessor  : public juce::AudioProcessor
+class LR_SaturatorAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    RRS_Header_integrationAudioProcessor();
-    ~RRS_Header_integrationAudioProcessor() override;
+    LR_SaturatorAudioProcessor();
+    ~LR_SaturatorAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -56,7 +56,7 @@ public:
 
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RRS_Header_integrationAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LR_SaturatorAudioProcessor)
     
     DSP saturator;
 };

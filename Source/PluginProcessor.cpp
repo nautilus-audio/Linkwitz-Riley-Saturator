@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-RRS_Header_integrationAudioProcessor::RRS_Header_integrationAudioProcessor()
+LR_SaturatorAudioProcessor::LR_SaturatorAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -24,17 +24,17 @@ RRS_Header_integrationAudioProcessor::RRS_Header_integrationAudioProcessor()
 {
 }
 
-RRS_Header_integrationAudioProcessor::~RRS_Header_integrationAudioProcessor()
+LR_SaturatorAudioProcessor::~LR_SaturatorAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String RRS_Header_integrationAudioProcessor::getName() const
+const juce::String LR_SaturatorAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool RRS_Header_integrationAudioProcessor::acceptsMidi() const
+bool LR_SaturatorAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -43,7 +43,7 @@ bool RRS_Header_integrationAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool RRS_Header_integrationAudioProcessor::producesMidi() const
+bool LR_SaturatorAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -52,7 +52,7 @@ bool RRS_Header_integrationAudioProcessor::producesMidi() const
    #endif
 }
 
-bool RRS_Header_integrationAudioProcessor::isMidiEffect() const
+bool LR_SaturatorAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -61,37 +61,37 @@ bool RRS_Header_integrationAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double RRS_Header_integrationAudioProcessor::getTailLengthSeconds() const
+double LR_SaturatorAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int RRS_Header_integrationAudioProcessor::getNumPrograms()
+int LR_SaturatorAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int RRS_Header_integrationAudioProcessor::getCurrentProgram()
+int LR_SaturatorAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void RRS_Header_integrationAudioProcessor::setCurrentProgram (int index)
+void LR_SaturatorAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String RRS_Header_integrationAudioProcessor::getProgramName (int index)
+const juce::String LR_SaturatorAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void RRS_Header_integrationAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void LR_SaturatorAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void RRS_Header_integrationAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void LR_SaturatorAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -103,7 +103,7 @@ void RRS_Header_integrationAudioProcessor::prepareToPlay (double sampleRate, int
     saturator.SetGain(1.2f);
 }
 
-void RRS_Header_integrationAudioProcessor::releaseResources()
+void LR_SaturatorAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
@@ -111,7 +111,7 @@ void RRS_Header_integrationAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool RRS_Header_integrationAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool LR_SaturatorAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -136,7 +136,7 @@ bool RRS_Header_integrationAudioProcessor::isBusesLayoutSupported (const BusesLa
 }
 #endif
 
-void RRS_Header_integrationAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void LR_SaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -172,25 +172,25 @@ void RRS_Header_integrationAudioProcessor::processBlock (juce::AudioBuffer<float
 }
 
 //==============================================================================
-bool RRS_Header_integrationAudioProcessor::hasEditor() const
+bool LR_SaturatorAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* RRS_Header_integrationAudioProcessor::createEditor()
+juce::AudioProcessorEditor* LR_SaturatorAudioProcessor::createEditor()
 {
-    return new RRS_Header_integrationAudioProcessorEditor (*this);
+    return new LR_SaturatorAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void RRS_Header_integrationAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void LR_SaturatorAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void RRS_Header_integrationAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void LR_SaturatorAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -200,5 +200,5 @@ void RRS_Header_integrationAudioProcessor::setStateInformation (const void* data
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new RRS_Header_integrationAudioProcessor();
+    return new LR_SaturatorAudioProcessor();
 }
