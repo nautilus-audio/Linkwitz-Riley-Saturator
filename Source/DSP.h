@@ -238,7 +238,7 @@ struct DSP
             for (TIntegerParamType i = 0; i < a_nSampleCount; ++i)
             {
                 dist_lows[channel] = tubeSaturation(lowBand[channel][i], 1.f); // Apply Saturation
-                writeData[i] = highBand[channel][i] + dist_lows[channel];  // Sum Signals
+                writeData[i] = (highBand[channel][i] + dist_lows[channel]) * .707f;  // Sum Signals
             }
                         
             memcpy(a_vAudioBlocksInPlace[channel], outBuffer[channel], a_nSampleCount * sizeof(TAudioSampleType));
