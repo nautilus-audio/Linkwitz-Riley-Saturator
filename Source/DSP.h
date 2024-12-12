@@ -94,6 +94,8 @@ struct DSP
 
     TAudioSampleType** inBuffer;
     TAudioSampleType** outBuffer;
+    TAudioSampleType** highBand;
+    TAudioSampleType** lowBand;
 
     TIntegerParamType _nMaxChannels;
     TIntegerParamType _nMaxBlockSize;
@@ -104,6 +106,8 @@ struct DSP
     void Init() {
         inBuffer =  NULL;
         outBuffer =  NULL;
+        highBand =  NULL;
+        lowBand =  NULL;
         _nMaxChannels = 1;
         _nMaxBlockSize = 1;
         _fGain_01 = 1;
@@ -183,6 +187,30 @@ struct DSP
         
         return sample;
     }
+    
+    TAudioSampleType* ProcessHighBand(TAudioSampleType* inStream, TAudioSampleType** band, Filter channelFilter, TIntegerParamType a_nChannels, TIntegerParamType a_nSampleCount, TIntegerParamType channel)
+    {
+        for (TIntegerParamType i = 0; i < a_nSampleCount; ++i)
+        {
+            high_outputs[channel] = channelFilter.highpass_filter(inStream[i], &high_states_1[channel], &high_states_2[channel], channelFilter.hpfCoeffs.a0, channelFilter.hpfCoeffs.a1, channelFilter.hpfCoeffs.a2, channelFilter.hpfCoeffs.b1, channelFilter.hpfCoeffs.b2);
+            
+            band[channel][i] = high_outputs[channel];   // Copy to Buffer
+            
+        }
+        return band[channel];
+    }
+    
+    TAudioSampleType* ProcessLowBand(TAudioSampleType* inStream, TAudioSampleType** band, Filter channelFilter, TIntegerParamType a_nChannels, TIntegerParamType a_nSampleCount, TIntegerParamType channel)
+    {
+        for (TIntegerParamType i = 0; i < a_nSampleCount; ++i)
+        {
+            low_outputs[channel] = channelFilter.lowpass_filter(inStream[i], &low_states_1[channel], &low_states_2[channel], channelFilter.lpfCoeffs.a0, channelFilter.lpfCoeffs.a1, channelFilter.lpfCoeffs.a2, channelFilter.lpfCoeffs.b1, channelFilter.lpfCoeffs.b2);
+            
+            band[channel][i] = low_outputs[channel];
+        }
+        
+        return band[channel];
+    }
         
         
     //RRS: Assertion: No memory allocations are allowed inside!
@@ -204,17 +232,15 @@ struct DSP
             auto monoFilter = filters[channel];
             
             // Process audio samples
+            highBand[channel] = ProcessHighBand(readData, highBand, monoFilter, a_nChannels, a_nSampleCount, channel);
+            lowBand[channel] = ProcessLowBand(readData, lowBand, monoFilter, a_nChannels, a_nSampleCount, channel);
+
             for (TIntegerParamType i = 0; i < a_nSampleCount; ++i)
             {
-                low_outputs[channel] = monoFilter.lowpass_filter(readData[i], &low_states_1[channel], &low_states_2[channel], monoFilter.lpfCoeffs.a0, monoFilter.lpfCoeffs.a1, monoFilter.lpfCoeffs.a2, monoFilter.lpfCoeffs.b1, monoFilter.lpfCoeffs.b2);
-                high_outputs[channel]  =  monoFilter.highpass_filter(readData[i], &high_states_1[channel], &high_states_2[channel], monoFilter.hpfCoeffs.a0, monoFilter.hpfCoeffs.a1, monoFilter.hpfCoeffs.a2, monoFilter.hpfCoeffs.b1, monoFilter.hpfCoeffs.b2);
-                
-                dist_lows[channel] = tubeSaturation(low_outputs[channel], 1.f); // Apply Saturation
-                outputSamples[channel] = dist_lows[channel] + high_outputs[channel];  // Sum Signals
-                
-                writeData[i] = outputSamples[channel];   // Copy to Buffer
+                dist_lows[channel] = tubeSaturation(lowBand[channel][i], 1.f); // Apply Saturation
+                writeData[i] = highBand[channel][i] + dist_lows[channel];  // Sum Signals
             }
-            
+                        
             memcpy(a_vAudioBlocksInPlace[channel], outBuffer[channel], a_nSampleCount * sizeof(TAudioSampleType));
         }
     }
@@ -243,6 +269,29 @@ struct DSP
 
         inBuffer =  NULL;
         outBuffer =  NULL;
+        
+        if (highBand)
+        {
+            for (TIntegerParamType n = 0; n < _nMaxChannels; ++n)
+            {
+                delete[] highBand[n];
+            }
+            
+            delete[] highBand;
+        }
+        
+        if (lowBand)
+        {
+            for (TIntegerParamType n = 0; n < _nMaxChannels; ++n)
+            {
+                delete[] lowBand[n];
+            }
+
+            delete[] lowBand;
+        }
+
+        highBand =  NULL;
+        lowBand =  NULL;
     }
 
     void _ReAllocInternalBuffers(TIntegerParamType a_nNewMaxChannels)
@@ -251,11 +300,15 @@ struct DSP
         
         inBuffer = new TAudioSampleType*[_nMaxChannels = a_nNewMaxChannels];
         outBuffer = new TAudioSampleType*[_nMaxChannels = a_nNewMaxChannels];
+        highBand = new TAudioSampleType*[_nMaxChannels = a_nNewMaxChannels];
+        lowBand = new TAudioSampleType*[_nMaxChannels = a_nNewMaxChannels];
         
         for (TIntegerParamType n = 0; n < _nMaxChannels; ++n)
         {
             inBuffer[n] = new TAudioSampleType[_nMaxBlockSize];
             outBuffer[n] = new TAudioSampleType[_nMaxBlockSize];
+            highBand[n] = new TAudioSampleType[_nMaxBlockSize];
+            lowBand[n] = new TAudioSampleType[_nMaxBlockSize];
         }
     }
         
