@@ -32,7 +32,7 @@ struct Filter{
     
     void hpfLRCoeffs(TFloatParamType f_crossover, TFloatParamType fs)
     {
-        TFloatParamType theta = M_PI * f_crossover / fs;
+        TFloatParamType theta = 2 * M_PI * f_crossover / fs;
         TFloatParamType Wc = M_PI * f_crossover;
         TFloatParamType k = Wc / tan(theta);
         TFloatParamType d = pow(k, 2.0) + pow(Wc, 2.0) + 2.0 * k * Wc;
@@ -46,7 +46,7 @@ struct Filter{
 
     void lpfLRCoeffs(TFloatParamType f_crossover, TFloatParamType fs)
     {
-        TFloatParamType theta = M_PI * f_crossover / fs;
+        TFloatParamType theta = 2 * M_PI * f_crossover / fs;
         TFloatParamType Wc = M_PI * f_crossover;
         TFloatParamType k = Wc / tan(theta);
         TFloatParamType d = pow(k, 2.0) + pow(Wc, 2.0) + 2.0 * k * Wc;
