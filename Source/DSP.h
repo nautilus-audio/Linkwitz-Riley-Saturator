@@ -145,7 +145,7 @@ struct DSP
         if (_nMaxChannels != a_nMaxChannels)
             _ReAllocInternalBuffers(a_nMaxChannels);
 
-        filters = (Filter*) malloc(2 * sizeof(Filter));
+        filters = (Filter*) malloc(a_nMaxChannels * sizeof(Filter));
 
         high_states_1 = (TFloatParamType*) malloc(_nMaxChannels);
         high_states_2 = (TFloatParamType*) malloc(_nMaxChannels);
