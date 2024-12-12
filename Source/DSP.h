@@ -194,7 +194,7 @@ struct DSP
         {
             high_outputs[channel] = channelFilter.highpass_filter(inStream[i], &high_states_1[channel], &high_states_2[channel], channelFilter.hpfCoeffs.a0, channelFilter.hpfCoeffs.a1, channelFilter.hpfCoeffs.a2, channelFilter.hpfCoeffs.b1, channelFilter.hpfCoeffs.b2);
             
-            band[channel][i] = high_outputs[channel];   // Copy to Buffer
+            band[channel][i] = high_outputs[channel];
             
         }
         return band[channel];
