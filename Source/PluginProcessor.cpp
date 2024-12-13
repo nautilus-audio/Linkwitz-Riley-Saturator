@@ -100,7 +100,7 @@ void LR_SaturatorAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
     saturator.SetMaxBlockSize(samplesPerBlock);
     saturator.SetCrossoverFrequency(5000.f);
     saturator.SetSampleRate(sampleRate);
-    saturator.SetGain(1.2f);
+    saturator.SetGain(1.f);
 }
 
 void LR_SaturatorAudioProcessor::releaseResources()
@@ -142,6 +142,7 @@ void LR_SaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     auto numSamples = buffer.getNumSamples();
+    auto numChannels = buffer.getNumChannels();
 
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
@@ -162,13 +163,6 @@ void LR_SaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto writeData = const_cast<TFloatParamType **>(buffer.getArrayOfWritePointers());
     saturator.Process(writeData, totalNumInputChannels, numSamples);
     
-//    auto writeData = const_cast<TAudioSampleType **>(buffer.getArrayOfWritePointers());
-//    auto readData = const_cast<TAudioSampleType **>(buffer.getArrayOfReadPointers());
-//
-//    memcpy(writeData, readData, numSamples);
-//    
-//    saturator.Process(writeData, totalNumInputChannels, numSamples);
-
 }
 
 //==============================================================================

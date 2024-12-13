@@ -1,20 +1,4 @@
 
-// Red Rock Sound (RRS):
-// This is the DSP structure for your algorithm realization.
-// This is the "interface" from our plug-in framework to your DSP code.
-
-// Your implementation must conform to this interface.
-// You should fill in the functions we left empty and free to create other functions you need.
-
-// Functions and data members with "_" prefix will not be called from the framework.
-// You can create a separate implementation .c file for some (or all) of your DSP functions,
-// but it's better to keep everything in one .h file for inlining optimization.
-
-// Process() should only perform the actual processing, not parameter initialization; its signature must be exactly as specified and it must be as fast as possible.
-
-// Below is the simplest audio Gain processing example (you are free to remove this code).
- 
-//RRS: Use these typedefs in your DSP code, not explicit type names!
 typedef float TAudioSampleType;
 typedef TAudioSampleType TFloatParamType;
 typedef int TIntegerParamType;
