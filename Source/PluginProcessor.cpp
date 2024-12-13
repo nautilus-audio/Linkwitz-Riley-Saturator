@@ -160,7 +160,7 @@ void LR_SaturatorAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
     
-    auto writeData = const_cast<TFloatParamType **>(buffer.getArrayOfWritePointers());
+    auto writeData = const_cast<float **>(buffer.getArrayOfWritePointers());
     saturator.Process(writeData, totalNumInputChannels, numSamples);
     
 }
