@@ -117,23 +117,19 @@ struct DSP
     void SetCrossoverFrequency(float a_nCrossoverFreq)
     {
         f_crossover = a_nCrossoverFreq;
+        
+        for(int channel = 0; channel < _nMaxChannels; channel++)
+        {
+            filters[channel].hpfLRCoeffs(f_crossover, fs);
+            filters[channel].lpfLRCoeffs(f_crossover, fs);
+        }
     }
     
     void SetMaxChannels(int a_nMaxChannels)
     {
         if (_nMaxChannels != a_nMaxChannels)
             _ReAllocInternalBuffers(a_nMaxChannels);
-
-        filters = (Filter*) malloc(a_nMaxChannels * sizeof(Filter));
-
-        high_states_1 = (float*) malloc(_nMaxChannels);
-        high_states_2 = (float*) malloc(_nMaxChannels);
-        low_states_1 = (float *) malloc(_nMaxChannels);
-        low_states_2 = (float *) malloc(_nMaxChannels);
-        outputSamples = (float *) malloc(_nMaxChannels);
-        low_outputs = (float *) malloc(_nMaxChannels);
-        high_outputs = (float *) malloc(_nMaxChannels);
-        dist_lows = (float *) malloc(_nMaxChannels);
+        
     }
 
     void SetSampleRate(float a_fSampleRate_Hz) {
@@ -236,9 +232,6 @@ struct DSP
 
             delete[] outBuffer;
         }
-
-        inBuffer =  NULL;
-        outBuffer =  NULL;
         
         if (highBand)
         {
@@ -259,9 +252,67 @@ struct DSP
 
             delete[] lowBand;
         }
+        
+        if(filters)
+        {
+            delete[] filters;
+        }
+        
+        if (high_states_1)
+        {
+            delete[] high_states_1;
+        }
+        
+        if (high_states_2)
+        {
+            delete[] high_states_2;
+        }
+        
+        if (low_states_1)
+        {
+            delete[] low_states_1;
+        }
+        
+        if (low_states_2)
+        {
+            delete[] low_states_2;
+        }
+        
+        if (outputSamples)
+        {
+            delete[] outputSamples;
+        }
+        
+        if (low_outputs)
+        {
+            delete[] low_outputs;
+        }
+        
+        if (dist_lows)
+        {
+            delete[] dist_lows;
+        }
+        
+        if (high_outputs)
+        {
+            delete[] high_outputs;
+        }
 
+        
+        inBuffer =  NULL;
+        outBuffer =  NULL;
         highBand =  NULL;
         lowBand =  NULL;
+        filters = NULL;
+        high_states_1 = NULL;
+        high_states_2 = NULL;
+        low_states_1 = NULL;
+        low_states_2 = NULL;
+        outputSamples =  NULL;
+        low_outputs =  NULL;
+        high_outputs =  NULL;
+        dist_lows =  NULL;
+
     }
 
     void _ReAllocInternalBuffers(int a_nNewMaxChannels)
@@ -272,6 +323,17 @@ struct DSP
         outBuffer = new float*[_nMaxChannels = a_nNewMaxChannels];
         highBand = new float*[_nMaxChannels = a_nNewMaxChannels];
         lowBand = new float*[_nMaxChannels = a_nNewMaxChannels];
+        
+        filters = (Filter*) malloc(_nMaxChannels * sizeof(Filter));
+
+        high_states_1 = (float *) malloc(_nMaxChannels);
+        high_states_2 = (float *) malloc(_nMaxChannels);
+        low_states_1 = (float *) malloc(_nMaxChannels);
+        low_states_2 = (float *) malloc(_nMaxChannels);
+        outputSamples = (float *) malloc(_nMaxChannels);
+        low_outputs = (float *) malloc(_nMaxChannels);
+        high_outputs = (float *) malloc(_nMaxChannels);
+        dist_lows = (float *) malloc(_nMaxChannels);
         
         for (int n = 0; n < _nMaxChannels; ++n)
         {
