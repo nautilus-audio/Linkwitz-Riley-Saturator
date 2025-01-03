@@ -101,9 +101,8 @@ struct DSP
         high_outputs =  NULL;
         dist_lows =  NULL;
         
-    } //RRS: All initializations needed for your DSP, memory allocations are allowed inside
-
-    //RRS: Memory allocations are allowed inside
+    }
+    
     void SetMaxBlockSize(int a_nMaxBlockSize)
     {
         if (_nMaxBlockSize != a_nMaxBlockSize)
@@ -185,8 +184,6 @@ struct DSP
         return band[channel];
     }
         
-        
-
     void Process(float** a_vAudioBlocksInPlace, int a_nChannels, int a_nSampleCount)
     {
         for (int channel = 0; channel < a_nChannels; ++channel)
